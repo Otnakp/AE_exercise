@@ -10,7 +10,7 @@ void example1(){
     std::cout << (10 * (1 << 2)) << std::endl; // 10 * 4
     std::cout << (10 * (1 << 20)) << std::endl; // 10 * 2^(20)
     v[100] = 1ULL << 63; // set the max to use 64 bits
-    std::cout << (1ULL << 63) << std::endl; // 1ULL stands for unsigned long long, so is a lot of 1s
+    std::cout << (1ULL << 63) << std::endl; // 1ULL stands for unsigned long long
     sdsl::util::bit_compress(v);
     std::cout << sdsl::size_in_mega_bytes(v) << std::endl;
     sdsl::vlc_vector<sdsl::coder::elias_delta, 128> vlc(v); // 128 is the density (store pointers to do random access)
