@@ -43,7 +43,7 @@ void example2(){
     sdsl::enc_vector<sdsl::coder::elias_delta, 128> env_delta(data);
     std::cout << sdsl::size_in_mega_bytes(env_delta) << std::endl;
 
-    //if you do gamma code you will use less space probably because gamma is better than delta for small numbers
+    //if  you do gamma code you will use less space probably because gamma is better than delta for small numbers
 }
 
 int main(){
