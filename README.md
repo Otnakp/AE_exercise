@@ -2,6 +2,10 @@
 
 Compressed and succint data structures are able to save big amounts of memory while mantaining the ability to access and query efficiently. In this repo you will find some examples using [SDSL](https://github.com/simongog/sdsl-lite).
 
+## Installing
+
+To install the library please checkout [this](https://github.com/simongog/sdsl-lite). This library should probably not be used in production because is not mantained anymore. Checkout [this](https://github.com/vgteam/sdsl-lite) fork for a more updated version.
+
 ## Compressed integer vector
 
 Integer usually occupy some fixed bytes of memory. I will assume 8 bytes from now on. Usual arrays store in memory the bytes one after the other. To read them you just have to skip 8 bytes per iteration, because each number is 8 bytes. What if we wanted to use less bits per integer? We'd have to implement a data structure that is able to store continuously some bits and that is able to read them one after the other. SDSL does this for us. But first, why would we ever do that? Is this even useful?
@@ -75,13 +79,16 @@ Again, this can be implemented to work in constant time. Now we can describe how
 Now we just need a way to `access` (that's the name of the function too) a number at a specific index. We assume that we have the `select1` and `rank` implemented. The following is the implementation of `access`.
 
 ```c
-access(L, H, i):
+access(L, H, i){
 	low = L[(i-1)*l + 1 : i*l] // python-like notation
 	high = to_binary(select1(H, i) - i)
-	return low, high
+	return low + high // + operator to appen high to low
+}
 ```
 
 Remember that `i` starts from $1$ (I won't repeat this anymore, but I think that it's useful to repeat it because computer scientists are used to arrays starting from `0`). To understand the above code let's make an example. Let's say we want to execute `access(5)`. To get the low part we have to get the low part of the fifth number which is `00` from `L = 01 00 11 10 00 10 10 11`, in position `9` and `10`. For the high part, you need to count the number of ones before position `i`, using the select function. Now we subtract `i` from it and obtain the number of zeroes. So we have `11 - 5 = 6 = 110`. What does the number of zeroes represent? It's the number of binary configurations! So when we get `6` we know that it actually is the most significant part of the number we're searching for. Our result it therefore 11000, which is $24$, the fifth number.
+
+There's also another very interesting function in Elias Fano called `nextGEQ(n)`. This returns the number in the array greater or equal than `n`, and it does so very fast (constant time).
 
 ### Elias Fano Code
 
@@ -113,4 +120,14 @@ Know that there's a known issue (bug) that will give you different results compa
 
 ## Pointerless programming
 
-Our last example is pointerless programming, to work with strings.
+Our last example is pointerless programming, to work with strings. As you probably understood by now, when working with big data we want to save every bit. Very simple problems are unfeasible when you have giga bytes, tera bytes or even peta bytes of data. We'll solve a very simple problem with string, trying to be as efficient as possible. We want to store strings in alphabetical order and support searches. What we could do is a `char** v;`an array of pointers to `char*`, but this approach uses `64 bits` for each pointer (ie for each string) and requires you to jump in memory to get the string, possibly causing a cache miss. Instead of doing this, we'll use the `sdsl::bit_vector` to speed things up. Take a look at the following example, remembering that the special character `\0` is the string terminator character.
+
+```c
+s = {"dog", "cat", "parrot"}
+// store the strings 1 after the other using just a char*v
+// dog\0cat\0parrot\0
+// 1000 1000 1000000 // use this bit array to indicate where each string starts
+```
+
+For implementation details checkout `pointerless_programming.cpp`. The idea is to store the strings and the `\0` in just a `char*v` and to keep another bit vector where we store `1` where a string starts and then as many zeroes as the length of the string `-1` plus another `0` for the string terminator. By doing this we don't store any pointer and we don't have cache misses. You can then compress the bit array with Elias Fano.
+To search for a number we do a binary search in the bit array.
